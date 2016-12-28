@@ -1,2 +1,2 @@
-Web Crawler (need better name) project
+Server Surfer (got better name!) project
 Alex Boldt
