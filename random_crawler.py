@@ -2,44 +2,55 @@ import requests
 from html.parser import HTMLParser
 from link_scraper import LinkScraper
 import random
-#from termcolor import colored
+from termcolor import cprint
+import signal
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
+DEBUG = 0
 
-    def disable(self):
-        self.HEADER = ''
-        self.OKBLUE = ''
-        self.OKGREEN = ''
-        self.WARNING = ''
-        self.FAIL = ''
-        self.ENDC = ''
+def timeout_handler(signum, frame):
+    raise Exception("requested for more 10 seconds")
 
 def get_links(page):
     parser = LinkScraper(HTMLParser, page)
-    r = requests.get(page)
+    if DEBUG:
+        cprint("CREATED PARSER", "yellow")
+    signal.alarm(10)
+    if DEBUG:
+        cprint("SET ALARM", "yellow")
+    try:
+        r = requests.get(page)
+    except Exception as exc:
+        cprint(exc, "yellow")
+        return []
+    signal.alarm(0)
+    if DEBUG:
+        cprint("REQUESTED AND GOT HTML", "yellow")
     parser.feed(r.text)
+    if DEBUG:
+        cprint("FEED RETURNED", "yellow")
     return parser.link_list
 
 def choose_path(link_list):
     return link_list[random.randrange(len(link_list))]
 
 def main():
-    start_point = "http://www.homecharlottehome.com/"
-    choices = get_links(start_point)
-    while(True):
-        choice = choose_path(choices)
-        print(choice)
-        choices = get_links(choice)
+    signal.signal(signal.SIGALRM, timeout_handler)
+    choice = "http://www.homecharlottehome.com/"
+    parent = choice[:]
+    choices = get_links(choice)
+    while(1):
         if(len(choices)==0):
-            print(bcolors.FAIL + "****LEAFED AT: " + choice + bcolors.ENDC)
-            #print("****LEAFED AT: " + choice)
-            break
+            cprint("****LEAFED AT: " + choice + ", reattempting from " + parent, "yellow")
+            choice = parent[:]
+            choices = get_links(choice)
+            continue
+        if DEBUG:
+            print("parent:", parent)
+        print("choice:", choice)
+        parent = choice[:]
+        choice = choose_path(choices)
+        choices = get_links(choice)
+
 
 
 

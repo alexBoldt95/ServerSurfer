@@ -1,6 +1,8 @@
 from html.parser import HTMLParser
 import requests
+from termcolor import cprint
 
+DEBUG = False
 
 class LinkScraper(HTMLParser):
     link_list = [] #ayyy
@@ -12,8 +14,18 @@ class LinkScraper(HTMLParser):
         self.raw_link_set = set()
         self.curr_point = cp
 
+    def loop(self):
+        while 1:
+            pass
+
     def feed(self, data):
-        super().feed(data)
+        try:
+            #self.loop()
+            super().feed(data)
+            if DEBUG:
+                print("FED THROUGH DATA")
+        except Exception as exc:
+            cprint(exc, "red")
         try:
             self.raw_link_set.remove(self.curr_point)
         except KeyError:
