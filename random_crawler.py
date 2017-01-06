@@ -53,7 +53,7 @@ def traverse(start):
                 print("choice:", choice)
             else:
                 print(choice)
-                domain_set.add(my_urllib.get_domain(choice))
+            domain_set.add(my_urllib.get_domain(choice))
             parent = choice[:]
             choice = choose_path(choices)
             choices = get_links(choice)
