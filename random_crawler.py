@@ -6,6 +6,7 @@ from termcolor import cprint
 import signal
 import my_urllib
 import operator
+import sys
 
 DEBUG = 0
 
@@ -64,7 +65,6 @@ def traverse(start):
             if domain not in domain_dict:
                 domain_dict[domain] = 0
             domain_dict[domain] += 1
-            #domain_set.add(my_urllib.get_domain(choice))
             parent = choice[:]
             choice = choose_path(choices)
             choices = get_links(choice)
@@ -78,7 +78,7 @@ def traverse(start):
 
 
 def main():
-    traverse("https://en.wikipedia.org/wiki/Definitions_of_terrorism")
+    traverse(sys.argv[1])
 
 
 if __name__ == '__main__':
