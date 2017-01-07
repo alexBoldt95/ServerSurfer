@@ -1,19 +1,34 @@
-import requests
-from html.parser import HTMLParser
-from link_scraper import LinkScraper
-import random
-from termcolor import cprint
-import signal
-import my_urllib
+'''
+Alex Boldt
+Traverses the internet by randomly choosing links to request given an arbitrary start point
+'''
+
 import operator
 import sys
+import signal
+import random
+from html.parser import HTMLParser
+import requests
+from link_scraper import LinkScraper
+from termcolor import cprint
+import my_urllib
+from exception_lib import TimeoutException
+
 
 DEBUG = 0
 
 def timeout_handler(signum, frame):
-    raise Exception("requested for more 10 seconds")
+    '''
+    Called when the sigalarm times out, raises a TimeoutException
+    '''
+    #pylint: disable=unused-argument
+    raise TimeoutException("requested for more 10 seconds")
+    #pylint: enable=unused-argument
 
 def get_links(page):
+    '''
+    given an HTML page, scrape the <a href> tag bodies off and return as a list of strings
+    '''
     parser = LinkScraper(HTMLParser, page)
     if DEBUG:
         cprint("CREATED PARSER", "yellow")
@@ -21,28 +36,40 @@ def get_links(page):
     if DEBUG:
         cprint("SET ALARM", "yellow")
     try:
-        r = requests.get(page)
-    except Exception as exc:
+        req = requests.get(page)
+    except TimeoutException as exc:
         cprint(exc, "yellow")
         return []
     signal.alarm(0)
     if DEBUG:
         cprint("REQUESTED AND GOT HTML", "yellow")
-    parser.feed(r.text)
+    parser.feed(req.text)
     if DEBUG:
         cprint("FEED RETURNED", "yellow")
     return parser.link_list
 
 def choose_path(link_list):
+    '''
+    choose a random link from the list of links
+    '''
     return link_list[random.randrange(len(link_list))]
 
-def print_dict_sorted(dict):
-    sorted_tups = [(k,v) for k,v in dict.items()]
+def print_dict_sorted(arg_dict):
+    '''
+    given a dict mapping string -> int, print dict in reverse order of values
+    '''
+    #pylint: disable=bad-whitespace
+    sorted_tups = [(k,v) for k,v in arg_dict.items()]
     sorted_tups.sort(key=operator.itemgetter(1), reverse=True)
     for k,v in sorted_tups:
         print(k + " : " + str(v))
+    #pylint: enable=bad-whitespace
 
 def traverse(start):
+    '''
+    given a start point, traverse the internet, backing up by one page on pages without links and
+    timing out after 10 seconds
+    '''
     signal.signal(signal.SIGALRM, timeout_handler)
     choice = start
     parent = choice[:]
@@ -50,8 +77,8 @@ def traverse(start):
     jumps = 0
     domain_dict = {}
     try:
-        while(1):
-            if(len(choices)==0):
+        while 1:
+            if len(choices) == 0:
                 cprint("****LEAFED AT: " + choice + ", reattempting from " + parent, "yellow")
                 choice = parent[:]
                 choices = get_links(choice)
@@ -78,6 +105,9 @@ def traverse(start):
 
 
 def main():
+    '''
+    main, accepts a command line arg as the starting point
+    '''
     traverse(sys.argv[1])
 
 
