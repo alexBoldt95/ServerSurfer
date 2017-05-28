@@ -15,7 +15,7 @@ import my_urllib
 from exception_lib import TimeoutException
 
 
-DEBUG = 0
+DEBUG = 0 #Print debugging var
 
 def timeout_handler(signum, frame):
     '''
